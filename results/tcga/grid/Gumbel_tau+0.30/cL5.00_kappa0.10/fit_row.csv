@@ -1,0 +1,2 @@
+family,tau,profile,subsample_seed,c_L,kappa,n,deaths,tau_hat,loglik,df,aic,bic,ebic,rna_failure,rna_censoring,cna_failure,cna_censoring,selection_gate,refit_pass,accepted,selection_residual,refit_residual,output_dir
+Gumbel,0.3,0,0,5,0.1,482,174,0.3,-2330.88583074577,32,4725.77166149153,4859.46587314115,4884.32430553484,1,1,0,0,1,1,1,7.32597653816299e-05,6.93737274984237e-08,<OUT_ROOT>/tcga/grid/Gumbel_tau+0.30/cL5.00_kappa0.10

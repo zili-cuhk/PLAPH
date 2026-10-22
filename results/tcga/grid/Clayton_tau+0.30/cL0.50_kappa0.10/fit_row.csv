@@ -1,0 +1,2 @@
+family,tau,profile,subsample_seed,c_L,kappa,n,deaths,tau_hat,loglik,df,aic,bic,ebic,rna_failure,rna_censoring,cna_failure,cna_censoring,selection_gate,refit_pass,accepted,selection_residual,refit_residual,output_dir
+Clayton,0.3,0,0,0.5,0.1,482,174,0.3,-2183.19821185149,69,4504.39642370298,4792.67456757248,5112.39184236289,18,21,0,0,1,1,1,9.44069299812346e-05,3.6259604923942e-08,<OUT_ROOT>/tcga/grid/Clayton_tau+0.30/cL0.50_kappa0.10

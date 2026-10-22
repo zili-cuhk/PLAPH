@@ -1,0 +1,2 @@
+family,tau,profile,subsample_seed,c_L,kappa,n,deaths,tau_hat,loglik,df,aic,bic,ebic,rna_failure,rna_censoring,cna_failure,cna_censoring,selection_gate,refit_pass,accepted,selection_residual,refit_residual,output_dir
+Gaussian,-0.5,0,0,1.5,0.1,482,174,-0.5,-2303.20003109254,36,4678.40006218508,4828.8060502909,4895.61088525202,2,4,0,0,1,1,1,9.21864371421849e-05,9.37394226565709e-08,<OUT_ROOT>/tcga/grid/Gaussian_tau-0.50/cL1.50_kappa0.10

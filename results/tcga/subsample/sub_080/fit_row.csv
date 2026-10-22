@@ -1,0 +1,2 @@
+family,tau,profile,subsample_seed,c_L,kappa,n,deaths,tau_hat,loglik,df,aic,bic,ebic,rna_failure,rna_censoring,cna_failure,cna_censoring,selection_gate,refit_pass,accepted,selection_residual,refit_residual,output_dir
+Frank,0,0,20261100,6,0.15,385,139,0,-1863.48146561096,30,3786.96293122192,3905.56023125055,3905.56023125055,0,0,0,0,1,1,1,9.70580222245827e-05,8.44252223593948e-08,<OUT_ROOT>/tcga/subsample/sub_080

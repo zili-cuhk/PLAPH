@@ -1,0 +1,2 @@
+scenario_id,fit_copula,estimate_tau,n,p,q,num_basis,spline_group_df,n_failure_events,n_censoring_events,censor_rate,tau_hat,alpha_hat,mean_loglik,total_loglik,effective_df,aic,bic,elapsed_seconds,selected_linear_failure,selected_linear_censoring,selected_additive_failure,selected_additive_censoring
+TCGA_LUAD_primary_p500_q200,Frank,0,482,255,161,7,6,174,308,0.639004149377593,0,0,-4.84558718266073,-2335.57302204247,31,4733.14604408495,4862.66231162052,16.630749,6,5,0,0
