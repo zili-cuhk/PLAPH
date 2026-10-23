@@ -3086,7 +3086,7 @@ end
 
 % v2: bspline_basis(j,n,...) takes the ORDER n (degree n-1). The legacy
 % engine passed K=3 (quadratic) with order-4 knot multiplicity. The order is
-% now explicit and consistent: 4 = cubic (default), 3 = quadratic.
+% now explicit and consistent: 3 = quadratic (default SplineOrder), 4 = cubic.
 order = plaph_spline_order();
 K = order - 1; %#ok<NASGU> % degree
 

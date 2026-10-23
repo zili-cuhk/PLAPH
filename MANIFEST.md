@@ -37,6 +37,7 @@ they are produced by the MATLAB/R runs listed in README.md (Level B/C).
 | `tab:luad-subsampling-full-support` | subsampling frequencies | `fill_tcga.py` | `results/tcga/subsample/` |
 | `tab:luad-corrected-additive-audit` | additive-threshold sensitivity | `fill_supp_extra.py` | `results/tcga/additive/` |
 | `tab:luad-dimension-audit` | screened-dimension sensitivity | `fill_supp_extra.py` | `results/tcga/dimension/` |
+| TCGA working set (Section S5.1) | screening and export | `code/R/tcga_preprocessing/*.R`; check: `code/python/check_tcga_screen.py` | stage-1 files (not distributed) |
 | `tab:external-supp` and external paragraph | GSE72094 | `external_gse72094.py`, `fill_supp_extra.py` | `results/external/gse72094_result.json` |
 
 `code/python/reproduce_tables.py` runs all `fill_*.py` scripts on blanked copies of the

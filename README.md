@@ -92,8 +92,9 @@ Supports are taken from the frozen selection masks before refitting.
 ## Level C: TCGA-LUAD and external evaluation
 
 The patient-level TCGA working matrices are not distributed. `data/README_data.md` describes
-how to obtain the data and the format of the working set expected by
-`run_PLAPH_real_data.m`. With the working set in `WS_DIR`:
+how to obtain the data, the screening scripts that produced the working set
+(`code/R/tcga_preprocessing/`) and the format expected by `run_PLAPH_real_data.m`.
+With the working set in `WS_DIR`:
 
 | Step | Script | Content |
 |---|---|---|
@@ -114,7 +115,7 @@ Rscript code/R/external_gse72094_check.R gse.csv     # optional cross-check with
 
 ```
 code/matlab     estimation engine, experiment manifest and task runner, aggregation
-code/R          grpsurv comparator, coxph cross-check of the external evaluation
+code/R          grpsurv comparator, TCGA screening scripts, coxph cross-check of the external evaluation
 code/python     table regeneration and check, figures, pilot summary, external evaluation
 cluster/lsf     LSF submission scripts (edit config.sh)
 results/        simulation, pilot, TCGA and external results used in the article

@@ -25,12 +25,31 @@ primary_p500_q200_X_CNA_q200_features.csv feature names, in screening order
 ```
 
 These patient-level matrices are not distributed with this archive. They were built by the
-preprocessing described in Supplementary Section S5.1 (median imputation and standardization,
-variance filter to 2,000 RNA and 1,000 CNA variables, margin-specific Cox screens adjusted
-for age, sex and stage). The script that produced the working set from the cBioPortal
-download is not included: the original preprocessing script was not retained. The working set
-itself, which is derived from publicly available TCGA data, can be provided to the editor and
-reviewers on request, and all analyses downstream of it (`04_tcga.sh` and the scripts in
+preprocessing described in Supplementary Section S5.1 in two stages.
+
+1. *Extraction and variance filter.* RNA z-scores and continuous log2 CNA values from the
+   cBioPortal download were linked by patient identifier, feature-level missing values were
+   replaced by the feature median, features were standardized, and a variance filter kept
+   2,000 RNA and 1,000 CNA variables (`Z_RNA_var_top2000_os.csv`, `X_log2CNA_var_top1000_os.csv`,
+   `luad_pilot_clinical.csv`). The script for this stage was not retained.
+2. *Screen and export* (`code/R/tcga_preprocessing/`, R with `survival` and `splines`).
+   `run_luad_pilot_dimension_experiment.R` runs, on the patients with positive follow-up and
+   complete age, sex and stage, death- and censoring-margin Cox screens adjusted for age, sex
+   and stage: a Wald test for each RNA variable and a likelihood-ratio test of a three-degree-
+   of-freedom natural spline for each CNA variable. Each variable is ranked by the larger of its
+   two -log10 p-values. `export_luad_pilot_working_sets.R` then writes the leading 500 RNA and
+   200 CNA variables as the working set `primary_p500_q200_*` (it also writes two sensitivity
+   sets that are not used in the article). Set `PLAPH_LUAD_ROOT` to the folder holding the
+   stage-1 files.
+
+`code/python/check_tcga_screen.py` re-runs the stage-2 screens on a working set and compares
+them with the screen statistics stored in its feature files. For the working set used in the
+article it reproduces all 2,000 stored RNA p-values and coefficients to a relative difference
+below 1e-6, all 800 stored CNA p-values to below 1e-11, and the stored ranking exactly
+(482 patients, 174 deaths).
+
+The working set, which is derived from publicly available TCGA data, can be provided to the
+editor and reviewers on request; all analyses downstream of it (`04_tcga.sh` and the scripts in
 `code/`) are included.
 
 ## GSE72094
