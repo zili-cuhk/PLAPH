@@ -27,7 +27,20 @@ for the submitted version it reports `22 tables, 5468 numeric cells compared, 0 
 The script reads `reference_tables/` only to obtain the row labels of each table; all values
 are blanked and recomputed from `results/`.
 
-Software used for Level A: Python 3.13, numpy 2.5, pandas 3.0, matplotlib 3.11 (any recent
+The two large-sample tables of the Supplement (`tab:pl-limits`, `tab:baseline-sieve`) are
+computed directly from simulated samples of size 200,000 (seeds fixed in the scripts; about one
+minute in total, requires scipy):
+
+```bash
+cd code/python
+python3 pl_limit_dependent_censoring.py ../../results/simulation/pl_limits/pl_limits.csv
+python3 baseline_sieve_limit.py ../../results/simulation/baseline_sieve/baseline_sieve_limits.csv
+```
+
+`reproduce_tables_figures.sh` checks their rows against `reference_tables/supp_tables.tex`
+(`output/large_sample_check.txt`, `0 differences`).
+
+Software used for Level A: Python 3.13, numpy 2.5, pandas 3.0, matplotlib 3.11, scipy (large-sample tables only) (any recent
 versions should work).
 
 ## Level B: rerunning the simulations
@@ -41,7 +54,7 @@ Toolboxes, and R 4.5.1 with grpreg 3.6.0, on an LSF cluster (one core and 8 GB p
 
 * `plaph_v2_manifest(experiment)` is the frozen table of designs, seeds and methods for each
   experiment (`main`, `ablation_tau0`, `grpsurv_export`, `highcorr`, `copula_family`,
-  `xi_sensitivity`, `spline_pilot`, `smoke`).
+  `xi_sensitivity`, `tau_misspec`, `spline_pilot`, `smoke`).
   The seed of replication `r` is `seed_root + 1000*seed_scenario + r`; designs that must share
   data (the working families of one generating family; all kink coefficients at one sample
   size; PLAPH and PLAPH-ind) share `seed_scenario`.
@@ -73,6 +86,7 @@ then submit in this order; each script prints the job identifiers.
 | 4 | `07_highcorr_extras.sh 3` | PLAPH-ind and grpsurv data for the high-correlation design |
 | 5 | `03_grpsurv.sh` and `03_grpsurv.sh "V2_grpsurv_export_S21_*"` | grpsurv (R) on the exported data |
 | 6 | `90_aggregate.sh`, `91_curves.sh` | summaries (`summary/*.csv`) and function-error summaries from the stored curves |
+| 7 | `10_numerics_and_new_runs.sh smoke`, then `tau` and `tcga` | check of the `LegacyNumerics` switch; misspecified-association experiment; extended TCGA tuning grid (after step 4 of Level C) |
 
 `02_main_campaign.sh` also submits the copula-family experiment in full; step 3 then refits
 the misspecified families on the shared data sets, as reported. After step 6, copy
@@ -88,6 +102,19 @@ paired copula-family refits) used about 1,500 core-hours.
 **Numerical notes.** A fit is *accepted* only if the selection gate and the refit KKT residual
 are at most 1e-4; acceptance rates are reported and all summaries use all replications.
 Supports are taken from the frozen selection masks before refitting.
+
+### Numerical corrections and the `LegacyNumerics` switch
+
+A code review after the reported computations found three small departures from the
+description in the Supplement (Section "Implementation note"): the censoring-spline gradient in a
+sweep used failure-margin terms from before the failure-spline update; the Frank-copula score
+omitted the factor K/(K+1e-8) of the implemented objective log(K+1e-8); and ties in the screening
+ranks were broken by covariate index. `run_PLAPH_simulation` and `run_PLAPH_real_data` correct all
+three by default (`'LegacyNumerics', false`). The task drivers `plaph_v2_run_task` and
+`plaph_v2_tcga_task` default to `'LegacyNumerics', true`, which reproduces the stored results
+exactly. `plaph_v2_smoke_numerics` checks this on replication 1 of D6: with the switch on, all
+recorded quantities equal the stored ones; with the corrections, the coefficients, standard errors
+and function errors change by at most 5e-6 and the supports and tuning values are unchanged.
 
 ## Level C: TCGA-LUAD and external evaluation
 

@@ -398,6 +398,10 @@ parser.addParameter("DiscriminatingCensorRates", [0.30 0.50], ...
     all(x > 0 & x < 1));
 parser.addParameter("DiscriminatingAdditiveSignalScale", 1.5, ...
     @(x) isscalar(x) && x > 0);
+% Scale of the censoring-only linear coefficients (gamma on Z2, Z4, Z7);
+% empty keeps the common linear signal scale.
+parser.addParameter("DiscriminatingCensoringLinearScale", [], ...
+    @(x) isempty(x) || (isscalar(x) && x > 0));
 parser.addParameter("DiscriminatingCensoringFunctionDesign", "current", ...
     @(x) any(strcmpi(string(x), ...
     ["current" "shared_opposite" "shared_opposite_bounded" ...
@@ -471,9 +475,10 @@ parser.addParameter("PreScreeningType", "none", @(x) any(strcmpi(string(x), ...
 parser.addParameter("ScreenLinearSize", [], @(x) isempty(x) || (isscalar(x) && x >= 1 && fix(x) == x));
 parser.addParameter("ScreenAdditiveSize", [], @(x) isempty(x) || (isscalar(x) && x >= 1 && fix(x) == x));
 parser.addParameter("ScreenAdditiveRank", 4, @(x) isscalar(x) && x >= 1 && fix(x) == x);
-% v2 options
+% v2 options (see CHANGES_v2.md)
 parser.addParameter("DiscriminatingRho", 0.25, @(x) isscalar(x) && x >= 0 && x < 1);
 parser.addParameter("SplineOrder", 3, @(x) isscalar(x) && any(x == [3 4]));
+parser.addParameter("LegacyNumerics", false, @(x) islogical(x) && isscalar(x));
 parser.addParameter("TuningMode", "fixed", @(x) any(strcmpi(string(x), ["fixed" "grid_ebic" "grid_bic"])));
 parser.addParameter("TuningGridCL", [0.5 1.0 1.5 2.0 2.5], @(x) isnumeric(x) && all(x > 0));
 parser.addParameter("TuningGridKappa", [0.03 0.05 0.075 0.10 0.15], @(x) isnumeric(x) && all(x > 0));
@@ -758,6 +763,9 @@ end
 T.additive_linear_coefficient(:) = 0.8;
 T.linear_signal_scale(:) = 1.5;
 T.additive_signal_scale(:) = opts.DiscriminatingAdditiveSignalScale;
+if ~isempty(opts.DiscriminatingCensoringLinearScale)
+    T.censoring_linear_scale = repmat(opts.DiscriminatingCensoringLinearScale,height(T),1);
+end
 T.dgp_type = repmat("discriminating",height(T),1);
 T.censoring_function_design = repmat( ...
     lower(string(opts.DiscriminatingCensoringFunctionDesign)),height(T),1);
@@ -785,6 +793,9 @@ T = scenario_grid("E10_informative_calibration",R,5000,7,6,0.25, ...
 T.additive_linear_coefficient(:) = 0.8;
 T.linear_signal_scale(:) = 1.5;
 T.additive_signal_scale(:) = opts.DiscriminatingAdditiveSignalScale;
+if ~isempty(opts.DiscriminatingCensoringLinearScale)
+    T.censoring_linear_scale = repmat(opts.DiscriminatingCensoringLinearScale,height(T),1);
+end
 T.dgp_type = repmat("discriminating",height(T),1);
 T.censoring_function_design = repmat( ...
     lower(string(opts.DiscriminatingCensoringFunctionDesign)),height(T),1);

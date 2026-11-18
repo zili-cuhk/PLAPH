@@ -92,7 +92,7 @@ hc = {
 a = src.index(r'\label{tab:supp-strong-correlation}'); b = src.index(r'\end{tabular}', a)
 blk = src[a:b]
 for k, v in hc.items():
-    blk = re.sub(re.escape(k) + r' &[^\n]*\\\\', lambda m: k + ' & ' + ' & '.join(v) + r' \\\\', blk)
+    blk = re.sub(re.escape(k) + r' &[^\n]*\\\\', lambda m: k + ' & ' + ' & '.join(v) + r' \\', blk)
 src = src[:a] + blk + src[b:]
 
 # ------------------------------------------------------------- copula family

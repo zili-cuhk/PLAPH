@@ -283,6 +283,12 @@ end
 
 
 function write_inference_table(exp_dir, M, summary_dir)
+% Working summary for monitoring only. Its "conditional" columns condition on
+% exact recovery of the margin's linear support and average finite coverage
+% indicators; the paper's inference tables are computed by
+% code/python/fill_supp_sim.py, which conditions on exact recovery of all four
+% supports and counts an omitted coefficient (or one without a finite SE) as
+% not covering.
 % Coefficient-level bias, ESE, ASE, CP: unconditional and conditional on
 % exact recovery of the corresponding linear support.
 beta_true = [1.5 -1.2 0.9]; gamma_true = [-1.2 1.5 0.9];

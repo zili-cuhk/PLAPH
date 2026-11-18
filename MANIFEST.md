@@ -28,6 +28,8 @@ they are produced by the MATLAB/R runs listed in README.md (Level B/C).
 | Figures S1–S2 | function recovery D1, D9 | `make_figures.py` | `summary/curves_*.csv`, grpsurv curves |
 | `tab:supp-strong-correlation` | high correlation | `fill_supp_functions.py` | `summary/summary_highcorr.csv`, `summary_ablation_tau0.csv` (S21) |
 | `tab:e11-xi-path`, Figure S3 | kink coefficient | `fill_supp_extra.py`, `make_figures.py` (xi) | `xi_sensitivity/` replicates |
+| `tab:tau-misspec` | misspecified working association (D5, D6 data) | `fill_tau_misspec.py` | `results/simulation/{tau_misspec,ablation_tau0,main}/` |
+| `tab:pl-limits`, `tab:baseline-sieve` | large-sample limits: PL under dependent censoring; fixed number of baseline intervals | `fill_large_sample.py` (computed by `pl_limit_dependent_censoring.py`, `baseline_sieve_limit.py`) | `results/simulation/pl_limits/pl_limits.csv`, `results/simulation/baseline_sieve/baseline_sieve_limits.csv` |
 | `tab:e10-family-sensitivity`, `tab:e10-family-paired` | copula families | `fill_supp_functions.py` | `summary/summary_copula_family.csv`, `copula_family/` replicates |
 | Figures S4–S5 | function recovery F7, F8 | `make_figures.py` | `summary/curves_copula_family.csv` |
 | `tab:luad-fixed-supp`, `tab:luad-support-full` | TCGA tuning and supports | `fill_tcga.py` | `results/tcga/grid/` |
@@ -56,3 +58,5 @@ tables in `reference_tables/` and compares the result with the reported values c
   `rows_*_curves.csv`: its centered fitted functions on the evaluation grid.
 * `results/tcga/`: fit summaries, gene-level linear coefficients and CNA group norms for each
   TCGA fit (no patient-level data). Absolute output paths have been replaced by `<OUT_ROOT>`.
+
+Extended tuning-grid check (text of the Supplementary section on the fixed association grid): the eight working copulas whose EBIC still decreased at c_L = 6 were refitted on c_L in {6, 7, 8, 10, 12, 15, 20} (`lsf/10_numerics_and_new_runs.sh tcga`); EBIC grids and linear supports are in `results/tcga/grid_extended/`.

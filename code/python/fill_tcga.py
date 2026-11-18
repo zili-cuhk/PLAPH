@@ -66,8 +66,9 @@ main, n1 = fill_rows(main, 'tab:luad-grid-main', main_row)
 supp, n2 = fill_rows(supp, 'tab:luad-fixed-supp', supp_row)
 print('rows', n1, n2)
 
-# support table over the 13 Frank/Gaussian fits
-fits = [('Frank', t) for t in [-0.7, -0.5, -0.3, 0, 0.3, 0.5, 0.7]] + [('Gaussian', t) for t in [-0.7, -0.5, -0.3, 0.3, 0.5, 0.7]]
+# support table over the 19 distinct working copulas
+fits = ([('Frank', t) for t in [-0.7, -0.5, -0.3, 0, 0.3, 0.5, 0.7]] + [('Gaussian', t) for t in [-0.7, -0.5, -0.3, 0.3, 0.5, 0.7]]
+        + [(f, t) for f in ('Clayton', 'Gumbel') for t in (0.3, 0.5, 0.7)])
 coef = {'failure': {}, 'censoring': {}}
 for fam, t in fits:
     d = choice(fam, t)[1]
@@ -78,7 +79,7 @@ ref = {'failure': lin(ref_d, 'failure'), 'censoring': lin(ref_d, 'censoring')}
 rows = []
 for m in ['failure', 'censoring']:
     for g, cs in sorted(coef[m].items(), key=lambda x: -len(x[1])):
-        c0 = f'{ref[m][g]:.3f}' if g in ref[m] else '--'
+        c0 = f'${ref[m][g]:.3f}$' if g in ref[m] else '--'
         rows.append(f'{m.capitalize()} & {g} & {c0} & {len(cs)} & ${min(cs):.3f}$ to ${max(cs):.3f}$ \\\\')
 a = supp.index(r'\label{tab:luad-support-full}'); s0 = supp.index(r'\midrule', a) + len(r'\midrule'); e0 = supp.index(r'\bottomrule', a)
 supp = supp[:s0] + '\n' + '\n'.join(rows) + '\n' + supp[e0:]

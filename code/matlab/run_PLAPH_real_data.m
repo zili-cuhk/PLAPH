@@ -205,6 +205,7 @@ parser.addParameter("PostSelectionRefitMaxIter", 30, ...
     @(x) isscalar(x) && x >= 1 && fix(x) == x);
 % v2 options
 parser.addParameter("SplineOrder", 3, @(x) isscalar(x) && any(x == [3 4]));
+parser.addParameter("LegacyNumerics", false, @(x) islogical(x) && isscalar(x));
 parser.addParameter("UnpenalizedClinical", false, @(x) islogical(x) && isscalar(x));
 parser.addParameter("MergeDuplicateAdditive", false, @(x) islogical(x) && isscalar(x));
 parser.addParameter("SubsampleSeed", 0, @(x) isscalar(x) && x >= 0);

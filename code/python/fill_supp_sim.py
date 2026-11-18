@@ -60,8 +60,9 @@ def sci(x):
 # ---------------------------------------------------------------- diagnostics
 def diag_row(s):
     R = MAIN[s]; acc = R.mpl_accepted == 1; A = R[acc]
-    agree = [f3((A[c] == 1).mean()) for c in ['mpl_pilot_final_agree_linear_T', 'mpl_pilot_final_agree_linear_C',
-                                             'mpl_pilot_final_agree_add_T', 'mpl_pilot_final_agree_add_C']]
+    cols = ['mpl_pilot_final_agree_linear_T', 'mpl_pilot_final_agree_linear_C',
+            'mpl_pilot_final_agree_add_T', 'mpl_pilot_final_agree_add_C']
+    agree = [f3((A[c] == 1).mean()) for c in cols] + [f3((A[cols] == 1).all(axis=1).mean())]
     ind = '--' if TAU[s] == 0 else f3((IND[s].mpl_accepted == 1).mean())
     tie = (R.tuning_tie_count == R.tuning_valid_count).mean()
     v = [f3(R.screen_all_sure.mean()), f3(acc.mean()), ind, f3((R.pl_accepted == 1).mean())] + agree + \
@@ -71,6 +72,13 @@ def diag_row(s):
 
 # ---------------------------------------------------------- selection detail
 def sel_vals(s, method, margin, comp):
+    if margin == 'both':                       # all four supports jointly
+        R = MAIN[s] if method == 'PLAPH' else IND[s]
+        fp = R[['beta_fp', 'phi_fp', 'mpl_add_T_fp', 'mpl_add_C_fp']].sum(axis=1)
+        fn = R[['beta_fn', 'phi_fn', 'mpl_add_T_fn', 'mpl_add_C_fn']].sum(axis=1)
+        sz = R[['mpl_beta_selected', 'mpl_phi_selected', 'mpl_selected_additive_T',
+                'mpl_selected_additive_C']].sum(axis=1)
+        return [f3(all4(R).mean()), f3(fp.mean()), f3(fn.mean()), f'{sz.mean():.2f}']
     if method in ('PLAPH', 'PLAPH-ind'):
         R = MAIN[s] if method == 'PLAPH' else IND[s]
         key = {('failure', 'linear'): ('beta_fp', 'beta_fn', 'mpl_beta_selected'),
@@ -184,7 +192,8 @@ print('diagnostics', fill('tab:supp-diagnostics', diag_fn, r'\end{tabular}'))
 print('selection', fill('tab:e10-selection-detail', sel_fn, r'\end{longtable}'))
 print('linear failure', fill('tab:e10-linear-failure', coef_fn_factory('failure'), r'\end{longtable}'))
 print('linear censoring', fill('tab:e10-linear-censoring', coef_fn_factory('censoring'), r'\end{longtable}'))
-print('conditional counts', min(cond_counts), max(cond_counts))
+if cond_counts:
+    print('conditional counts', min(cond_counts), max(cond_counts))
 open(tex, 'w').write(src)
 
 # pooled summaries for the main text (PLAPH, D1-D13)

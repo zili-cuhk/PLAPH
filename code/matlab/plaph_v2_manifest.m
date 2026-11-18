@@ -55,6 +55,15 @@ switch experiment
         M.scenario_index = (51:(50+height(M)))';
         M.seed_scenario = [repmat(51,numel(xi),1); repmat(61,numel(xi),1)];
         M.methods = repmat("MPL_fixed_tau",height(M),1);
+    case "tau_misspec"
+        % Misspecified working association (added 2026-11-17): the data of
+        % main D5 (tau 0.5) fitted at tau 0.2 and 0.8, and of main D6
+        % (tau 0.8) fitted at tau 0.5. Same data sets as "main".
+        M = core([5;5;6],:);
+        M.seed_scenario = [5;5;6];
+        M.scenario_index = [101;102;103];
+        M.fit_tau = [0.2;0.8;0.5];
+        M.methods = repmat("MPL_fixed_tau",3,1);
     case "spline_pilot"
         % Development seeds only (disjoint from all reported seeds).
         M = core(ismember(core.scenario_index,[1 4 6]),:);
@@ -115,6 +124,8 @@ T.seed_root = repmat(25000000,height(T),1);
 T.xi = repmat(25.6685,height(T),1);
 T.seed_scenario = NaN(height(T),1);
 T.methods = repmat("MPL_fixed_tau|PL",height(T),1);
+T.censoring_linear_scale = NaN(height(T),1);
+T.baseline_bins = NaN(height(T),1);   % NaN = ten intervals per margin
 T.scenario_id = strings(height(T),1);
 end
 

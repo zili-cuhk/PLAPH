@@ -51,10 +51,11 @@ def choice(fam, tau, gamma):
     return b, f'{g}/{os.path.basename(b.output_dir)}'
 
 
-# gamma = 0.5 re-selection (Frank and Gaussian rows)
+# gamma = 0.5 re-selection (all 19 distinct working copulas)
 rows = []
-for fam, taus in [('Frank', [-0.7, -0.5, -0.3, 0, 0.3, 0.5, 0.7]), ('Gaussian', [-0.7, -0.5, -0.3, 0.3, 0.5, 0.7])]:
-    if fam == 'Gaussian': rows.append(r'\addlinespace')
+for fam, taus in [('Frank', [-0.7, -0.5, -0.3, 0, 0.3, 0.5, 0.7]), ('Gaussian', [-0.7, -0.5, -0.3, 0.3, 0.5, 0.7]),
+                  ('Clayton', [0.3, 0.5, 0.7]), ('Gumbel', [0.3, 0.5, 0.7])]:
+    if fam != 'Frank': rows.append(r'\addlinespace')
     for t in taus:
         b, d = choice(fam, t, 0.5); T, C = lin(d, 'failure'), lin(d, 'censoring')
         genes = ', '.join(f'{g} ({neg(c, ".2f")})' for g, c in sorted(T.items(), key=lambda z: z[1]))

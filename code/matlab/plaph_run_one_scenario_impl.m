@@ -14,6 +14,11 @@ if ~isfield(opts,"SplineOrder") || isempty(opts.SplineOrder)
     opts.SplineOrder = 3;
 end
 plaph_spline_order(opts.SplineOrder);
+if isfield(opts,"LegacyNumerics") && ~isempty(opts.LegacyNumerics)
+    plaph_numerics_mode(logical(opts.LegacyNumerics));
+else
+    plaph_numerics_mode(false);
+end
 opts = plaph_v2_default_options(opts);
 if isfield(scenario, "real_data") && logical(scenario.real_data)
     result = plaph_run_real_data_impl(scenario, opts);
@@ -61,7 +66,12 @@ if dgp_type == "discriminating"
     Beta = zeros(p,1);
     PHI = zeros(p,1);
     Beta([1 3 6]) = linear_signal_scale.*[1.0;-0.8;0.6];
-    PHI([2 4 7]) = linear_signal_scale.*[-0.8;1.0;0.6];
+    censoring_linear_scale = linear_signal_scale;
+    if isfield(scenario,"censoring_linear_scale") && ~isempty(scenario.censoring_linear_scale) ...
+            && isfinite(scenario.censoring_linear_scale)
+        censoring_linear_scale = scenario.censoring_linear_scale;
+    end
+    PHI([2 4 7]) = censoring_linear_scale.*[-0.8;1.0;0.6];
     active_additive_T = [1 2 3 4];
     if any(censoring_function_design == ...
             ["shared_opposite" "shared_opposite_bounded" ...
@@ -734,6 +744,8 @@ for iter = 1:R
             rep(iter).mpl_armijo_rejected = mpl_diag.mpl_armijo_rejected;
             % v2: supports are the frozen pre-refit masks (no second threshold).
             rep(iter).beta_fp = support_false_positives(final_mask_beta,active_beta);
+            % failure-margin false positives among censoring-only linear covariates
+            rep(iter).beta_fp_censonly = sum(final_mask_beta(setdiff(active_phi,active_beta)));
             rep(iter).beta_fn = support_false_negatives(final_mask_beta,active_beta);
             rep(iter).phi_fp = support_false_positives(final_mask_phi,active_phi);
             rep(iter).phi_fn = support_false_negatives(final_mask_phi,active_phi);
@@ -859,6 +871,7 @@ for iter = 1:R
                 rep(iter),"pl_beta",pl_beta,active_beta);
             rep(iter).pl_fp = support_false_positives( ...
                 pl_linear_support,active_beta);
+            rep(iter).pl_fp_censonly = sum(pl_linear_support(setdiff(active_phi,active_beta)));
             rep(iter).pl_fn = support_false_negatives( ...
                 pl_linear_support,active_beta);
             rep(iter).pl_beta_selected = sum(pl_linear_support);
@@ -1292,10 +1305,7 @@ function fused = fuse_screening_scores(varargin)
 dimension = numel(varargin{1});
 best_rank = inf(dimension, 1);
 for k = 1:nargin
-    [~, order] = sort(varargin{k}, 'descend');
-    ranks = zeros(dimension, 1);
-    ranks(order) = (1:dimension)';
-    best_rank = min(best_rank, ranks);
+    best_rank = min(best_rank, screening_descending_ranks(varargin{k}));
 end
 fused = dimension - best_rank + 1;
 end
@@ -1305,12 +1315,8 @@ function fused = rank_fuse_screening_scores(score_a, score_b)
 % Prefer a variable ranked highly by either valid screening statistic.
 % The worse of the two ranks provides a deterministic secondary ordering.
 dimension = numel(score_a);
-[~, order_a] = sort(score_a, 'descend');
-[~, order_b] = sort(score_b, 'descend');
-rank_a = zeros(dimension, 1);
-rank_b = zeros(dimension, 1);
-rank_a(order_a) = (1:dimension)';
-rank_b(order_b) = (1:dimension)';
+rank_a = screening_descending_ranks(score_a);
+rank_b = screening_descending_ranks(score_b);
 best_rank = min(rank_a, rank_b);
 second_rank = max(rank_a, rank_b);
 fused = (dimension + 1 - best_rank) + ...
@@ -1402,9 +1408,36 @@ scores(~isfinite(scores)) = 0;
 end
 
 
+function ranks = screening_descending_ranks(scores)
+% Rank 1 = largest score. Ties: covariate index (legacy) or a fixed
+% pseudo-random order (default); see plaph_numerics_mode.
+scores = scores(:);
+dimension = numel(scores);
+if plaph_numerics_mode()
+    [~, order] = sort(scores, 'descend');
+else
+    tie_stream = RandStream('mt19937ar','Seed',20261117);
+    tie_key = zeros(dimension,1);
+    tie_key(randperm(tie_stream,dimension)) = (1:dimension)';
+    [~, order] = sortrows([-scores tie_key], [1 2]);
+end
+ranks = zeros(dimension, 1);
+ranks(order) = (1:dimension)';
+end
+
+
 function idx = top_score_indices(scores, count)
-candidate = [(1:numel(scores))', -scores(:)];
-candidate = sortrows(candidate, [2 1]);
+if plaph_numerics_mode()
+    tie_key = (1:numel(scores))';
+else
+    % Ties are broken by a fixed pseudo-random order, independent of the
+    % covariate index and of the global random stream.
+    tie_stream = RandStream('mt19937ar','Seed',20261117);
+    tie_key = zeros(numel(scores),1);
+    tie_key(randperm(tie_stream,numel(scores))) = (1:numel(scores))';
+end
+candidate = [(1:numel(scores))', -scores(:), tie_key];
+candidate = sortrows(candidate, [2 3]);
 idx = candidate(1:min(count, size(candidate, 1)), 1);
 end
 
@@ -1522,7 +1555,7 @@ rep = struct( ...
     'mse_pl', NaN, 'mse_oracle', NaN, 'tau_hat', NaN, 'alpha_hat', NaN, ...
     'mpl_baseline_armijo_failed', false, 'mpl_armijo_rejected', false, ...
     'beta_fp', NaN, 'beta_fn', NaN, 'phi_fp', NaN, 'phi_fn', NaN, ...
-    'pl_fp', NaN, 'pl_fn', NaN, 'ini_beta_selected', NaN, ...
+    'pl_fp', NaN, 'pl_fn', NaN, 'beta_fp_censonly', NaN, 'pl_fp_censonly', NaN, 'ini_beta_selected', NaN, ...
     'pl_refit_iterations', NaN, 'pl_refit_converged', false, ...
     'pl_refit_rejections', NaN, 'pl_refit_final_loglik', NaN, ...
     'ini_phi_selected', NaN, 'ini_beta_min_signal', NaN, ...
@@ -5066,6 +5099,14 @@ while k<=max_total_iter && ((err1==0 ||err2==0 || err3==0 || err4==0 || err5==0 
     w3 = bspline_beta1-bspline_beta;
     err3 = norm(w3,2)^2 <= r*norm(bspline_beta,2)^2;
     bspline_beta = bspline_beta1;
+    if ~plaph_numerics_mode()
+        % Gauss-Seidel order: the censoring spline gradient uses the
+        % failure-margin terms after the failure spline update.
+        H_T = sum( safe_exp(Z*beta+B*bspline_beta).*(seta.*Psi),2 );
+        H_T = min(max(H_T, 0), 700);
+        S_T = exp(-H_T);
+        [K1,K2,LAM1,LAM2,LAM11,LAM22] = copula_terms_generic(copula_family,S_T,S_C,alph,Delta);
+    end
 
     DL_phi_spline =   -(sum(((1-Delta)-(1-Delta).*H_C-LAM2.*S_C.*H_C).*B,1))'/n;  % first partial derivative - phi
     DL_phi_spline(~isfinite(DL_phi_spline)) = 0;
@@ -5966,7 +6007,7 @@ function [K1,K2,LAM1,LAM2,LAM11,LAM22] = copula_terms_generic(family,S_T,S_C,the
             error('Unsupported copula family: %s',family);
     end
 
-    if ~strcmp(family_l,'frank')
+    if ~strcmp(family_l,'frank') || ~plaph_numerics_mode()
         % The finite implementation evaluates log(K+eps0). Apply its exact
         % chain-rule factor so the analytic score matches that objective.
         weight1 = K1./(K1+eps0);
@@ -7621,6 +7662,29 @@ end
 %% ===========================================================
 %                 v2 helper functions
 % ============================================================
+function legacy = plaph_numerics_mode(value)
+% Persistent switch for three numerical corrections made on 2026-11-17.
+% legacy = true reproduces the computations behind the reported results:
+%   (i)   the Frank score omits the chain-rule factor K/(K+1e-8) of the
+%         implemented objective log(K+1e-8);
+%   (ii)  the censoring-margin spline gradient in the selection sweep uses
+%         the failure-margin terms from before the failure spline update;
+%   (iii) ties in the screening ranks are broken by covariate index.
+% legacy = false (default) applies the corrections: (i) the factor is used
+% for every family, (ii) the failure-margin terms are recomputed, and
+% (iii) ties are broken by a fixed pseudo-random order that does not depend
+% on the covariate index.
+persistent stored
+if nargin > 0
+    stored = logical(value);
+end
+if isempty(stored)
+    stored = false;
+end
+legacy = stored;
+end
+
+
 function order = plaph_spline_order(value)
 % Persistent B-spline order used by every basis constructor (4 = cubic,
 % 3 = quadratic). Set once at the start of each scenario.
